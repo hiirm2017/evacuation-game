@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>土砂災害・避難判断カード</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;max-width:680px;margin:0 auto;padding:24px 16px;background:#f5f7fa;color:#17202b}h1{font-size:1.55rem;margin-bottom:.7em;line-height:1.4}.intro{line-height:1.8}.muted{color:#566476;font-size:.91rem;line-height:1.6}button{width:100%;border:0;border-radius:12px;background:#145c9c;color:white;padding:15px 20px;font-size:1.05rem;font-weight:700;cursor:pointer;margin:12px 0}button:focus-visible,summary:focus-visible{outline:3px solid #f6a623;outline-offset:3px}article{padding:10px 14px;margin:12px 0;background:white;border:1px solid #d7dfe8;border-radius:12px;box-shadow:0 1px 3px #1231}summary{font-weight:700;cursor:pointer;padding:9px 3px;line-height:1.4}article p{line-height:1.8;margin:.65rem 0}.pill{display:inline-block;background:#ecf4fb;color:#164d7d;padding:3px 9px;border-radius:7px;font-size:.85rem;margin-right:8px}#status{font-weight:600;color:#234b70}.footer{border-top:1px solid #dce2e9;margin-top:26px;padding-top:12px}
+</style></head><body>
+<h1>土砂災害・避難判断ゲーム</h1>
+<p class="intro">深夜に大雨が続き，土砂崩れの危険が高まっています．停電中で行政からの公式情報は届いていません．</p>
+<p class="intro"><strong>30種類の情報から5枚をランダムに抽選</strong>します．A〜Eの各メンバーは自分のカードを確認し，情報を共有して避難すべきか，避難するならどのようにするかを話し合ってください．</p>
+<button id="draw" type="button">5枚の情報カードを抽選する</button>
+<p id="status" role="status" aria-live="polite"></p>
+<div id="cards"></div>
+<p class="muted footer">※ 授業用の架空の情報です．実際の災害時には利用せず，自治体の防災情報や周囲の状況に基づいて安全を確保してください．再抽選すると前の5枚は消えます．</p>
+<script>
+const data=["近くの斜面から，普段は見られない濁った水が流れ出している．", "停電前に確認した天気予報では，雨はあと1時間ほどで弱まる見込みだった．", "近所の住民が「山の方からゴロゴロという異常な音がした」と話している．", "この地区には，30年以上，大きな土砂災害が発生した記録がない．", "指定避難所までは徒歩約20分．途中に小さな川を渡る橋がある．", "地域のSNSに「近くで土砂崩れが発生したらしい」という投稿があった．場所や投稿者は不明．", "自宅の裏山に面した道路で，新しい亀裂を見つけた住民がいる．", "自治会長は「この程度の雨は以前にもあった．今すぐ避難する必要はない」と話している．", "近所には歩行が困難な高齢者がおり，避難には他の住民の介助が必要である．", "直近30分で雨がさらに強くなり，周辺の道路にも水がたまり始めている．", "近所の人が「斜面の木がいつもより傾いているように見える」と話している．夜間のため確認は難しい．", "昨日，地区の防災訓練で避難所までの経路を確認した人が複数いる．", "知人から「隣の地区ではすでに住民が避難し始めた」というメッセージが届いた．情報源は分からない．", "自宅は2階建てで，斜面から離れた側に窓の少ない部屋がある．", "近くの小川の水位は，夕方に見たときより明らかに高くなっている．", "携帯電話の電池残量が少なく，停電が続けば外部との連絡が難しくなりそうだ．", "家族の一人は「暗い中を移動するのは危険なので，朝まで家にいたい」と話している．", "過去の大雨では，避難所に向かう途中の道が土砂で通れなくなったことがある．", "自宅のある区域が土砂災害警戒区域に含まれると，数年前に配布された地図に記載されていた．", "数時間前に見たニュースでは，県内の別の地域で土砂災害が発生したと報じられていた．", "近所の人から「指定避難所は停電しているかもしれない」と聞いたが，確認できていない．", "日頃から地域の防災活動に参加している住民が「この雨はいつもと違う」と心配している．", "自宅周辺の排水溝が詰まり，道路に水があふれているのを見た人がいる．", "徒歩5分の場所に，斜面から離れた頑丈な建物があるが，夜間に入れるかは不明である．", "家族の中に小さな子どもがおり，避難の準備と移動には時間がかかる．", "近くの斜面で工事が行われていたが，雨が降り始めてからの状況は分からない．", "停電する前の気象情報では，この地域に大雨警報が発表されていた．現在も継続中かは分からない．", "近所の住民が「自宅の庭に小石が落ちてきた」と話している．どこから来たかは不明である．", "「上流の雨が弱まった」という話を聞いたが，誰がいつ確認した情報なのか分からない．", "近隣の数世帯とは普段から連絡を取り合っており，互いの避難を手伝える関係にある．"];
+const area=document.getElementById('cards');
+document.getElementById('draw').addEventListener('click',()=>{
+ const ids=data.map((_,i)=>i);
+ for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]];}
+ area.replaceChildren();
+ ids.slice(0,5).forEach((id,i)=>{
+  const article=document.createElement('article');
+  const details=document.createElement('details');
+  const summary=document.createElement('summary');
+  summary.textContent=`情報カード ${'ABCDE'[i]} （タップして開く）`;
+  const p=document.createElement('p');p.textContent=data[id];
+  details.append(summary,p);article.append(details);area.append(article);
+ });
+ document.getElementById('status').textContent='5枚を抽選しました．各自のカードだけを開いてください．';
+});
+</script></body></html>
